@@ -1,0 +1,7 @@
+; Update list for Class Icons. Upload this next to mod.ini and the files folder.
+version=1.0
+4853a43db5a2b7b23be3f91a2389d6ea002706d8|mod.ini
+1097ef8fd666b0e4e491c1295feb4ac42b94be2c|files/Data/ui/sp_addons/class_icons.txt
+f9070ea347142a203b8f04f48e0fbd4d1a83d597|files/Data/ui/themes/rose/game/arena_group.html
+6fedb34cabee5e5dda0c2652adf7056e8d331d6d|files/Data/ui/themes/rose/game/options_bgfx.html
+bb4fceb19744d4e73398d8331c8b473c31b85cf9|files/Data/ui/themes/rose/game/party.html

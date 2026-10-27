@@ -1,0 +1,2 @@
+class_icons
+; Marks the Class Icons add-on as installed. Removed again with the add-on.
