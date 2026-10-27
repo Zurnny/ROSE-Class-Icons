@@ -4,13 +4,15 @@
         <link type="text/template" href="../templates/window-fixed-size.html" />
         <link type="text/rcss" href="../styles/components.css" />
         <style>
+            /* ==== Parts of the page for one look only ==== */
+            .sp-only-steampunk { display: none; }
+            .sp-theme-steampunk .sp-only-default { display: none; }
+
+            /* ==== Both looks ==== */
             #party { width: 270dp; min-width: 150dp; min-height: 0; max-width: 95vw; padding: 2dp; padding-top: 24dp; }
             #party #window-content { padding: 2dp; }
-            #party > .window-title { height: 24dp; line-height: 24dp; padding-left: 4dp; }
             #party > .window-title-close { display: none; }
-            #party .ui-hud-toolbar { top: -24dp; right: 0; gap: 2dp; }
             .party-summary { display: flex; align-items: center; gap: 8dp; margin-bottom: 8dp; }
-            /* Round 24dp action icons from party_controls.png; the art carries its own disabled and hover states. */
             #party button.party-action { width: 20dp; min-width: 20dp; height: 20dp; padding: 0; margin: 0; }
             #party button.party-action:disabled { opacity: 1; }
             #party-entrust { decorator: image(party-entrust-n); }
@@ -23,7 +25,6 @@
             #party-leave:hover { decorator: image(party-leave-h); }
             #party-options { decorator: image(party-options-n); }
             #party-options:hover { decorator: image(party-options-h); }
-            .party-level { flex-shrink: 0; color: rgb(255, 247, 191); font-weight: 820; }
             #party gauge.party-experience { flex: 1; height: 12dp; text-align: center; font-size: 10dp; line-height: 12dp; }
             #party-members { min-height: 80dp; max-height: 40vh; overflow-y: auto; }
             .party-member.selected .member-name { color: rgb(255, 75, 75); }
@@ -31,16 +32,102 @@
             gauge.member-health { height: 1.5em; margin-top: 0; }
             gauge.member-health > .member-name { height: 1.5em; line-height: 1.5em; font-size: 1em; text-align: right; padding-right: 0.2em; box-sizing: border-box; }
             gauge.member-health.unavailable { opacity: 0.5; }
-            .member-statuses { gap: 0.1em; margin-top: 0.1em; flex-wrap: nowrap; }   /* wide enough for a full row of buffs (window is 18em) */
-            .member-statuses > span, .member-statuses > span > img { width: 1em; height: 1em; }
+            .member-statuses { gap: 0.1em; margin-top: 0.1em; flex-wrap: nowrap; }
+            .member-statuses > span { width: 1em; height: 1em; }
+            .member-statuses > span > img { width: 1em; height: 1em; }
             .member-status.blink { opacity: 0.3; }
-            #party-tooltip { visibility: visible; position: absolute; z-index: 100; clip: none; pointer-events: none; padding: 8dp; width: 250dp; max-width: 90vw; max-height: 90vh; background: rgba(0, 0, 0, 230); border: 1dp rgb(150, 150, 150); border-radius: 3dp; }
             .status-tooltip-name { display: block; font-weight: 820; margin-bottom: 4dp; }
             .status-tooltip-description { display: block; margin-bottom: 4dp; }
-            .status-tooltip-time { display: block; color: rgb(90, 230, 110); }
-            .status-tooltip-time.warning { color: rgb(255, 170, 60); }
-            .status-tooltip-time.danger { color: rgb(255, 80, 80); }
-            /* ---- Job icons (add-on, filled in by the script below) ---- */
+            .party-member.sp-has-job { position: relative; padding-left: 1.9em; }
+            .party-member.sp-has-job .sp-job-badge { display: block; }
+            .sp-job-badge.job-visitor { decorator: image(gj-visitor); }
+            .sp-job-badge.job-soldier { decorator: image(gj-soldier); }
+            .sp-job-badge.job-knight { decorator: image(gj-knight); }
+            .sp-job-badge.job-champion { decorator: image(gj-champion); }
+            .sp-job-badge.job-muse { decorator: image(gj-muse); }
+            .sp-job-badge.job-mage { decorator: image(gj-mage); }
+            .sp-job-badge.job-cleric { decorator: image(gj-cleric); }
+            .sp-job-badge.job-hawker { decorator: image(gj-hawker); }
+            .sp-job-badge.job-raider { decorator: image(gj-raider); }
+            .sp-job-badge.job-scout { decorator: image(gj-scout); }
+            .sp-job-badge.job-dealer { decorator: image(gj-dealer); }
+            .sp-job-badge.job-artisan { decorator: image(gj-artisan); }
+            .sp-job-badge.job-bourgeois { decorator: image(gj-bourgeois); }
+            .sp-job-source { display: none; }
+            .sp-job-probe { display: none; }
+            #sp-job-timer { position: absolute; width: 1dp; height: 1dp; opacity: 0; pointer-events: none; animation: 1s sp-job-tick-a; }
+            #party.sp-buffs-off .member-statuses { display: none; }
+            #party.sp-buff-50 .member-statuses > span { width: 0.5em; height: 0.5em; }
+            #party.sp-buff-50 .member-statuses > span > img { width: 0.5em; height: 0.5em; }
+            #party.sp-buff-60 .member-statuses > span { width: 0.6em; height: 0.6em; }
+            #party.sp-buff-60 .member-statuses > span > img { width: 0.6em; height: 0.6em; }
+            #party.sp-buff-70 .member-statuses > span { width: 0.7em; height: 0.7em; }
+            #party.sp-buff-70 .member-statuses > span > img { width: 0.7em; height: 0.7em; }
+            #party.sp-buff-80 .member-statuses > span { width: 0.8em; height: 0.8em; }
+            #party.sp-buff-80 .member-statuses > span > img { width: 0.8em; height: 0.8em; }
+            #party.sp-buff-90 .member-statuses > span { width: 0.9em; height: 0.9em; }
+            #party.sp-buff-90 .member-statuses > span > img { width: 0.9em; height: 0.9em; }
+            #party.sp-buff-110 .member-statuses > span { width: 1.1em; height: 1.1em; }
+            #party.sp-buff-110 .member-statuses > span > img { width: 1.1em; height: 1.1em; }
+            #party.sp-buff-120 .member-statuses > span { width: 1.2em; height: 1.2em; }
+            #party.sp-buff-120 .member-statuses > span > img { width: 1.2em; height: 1.2em; }
+            #party.sp-buff-130 .member-statuses > span { width: 1.3em; height: 1.3em; }
+            #party.sp-buff-130 .member-statuses > span > img { width: 1.3em; height: 1.3em; }
+            #party.sp-buff-140 .member-statuses > span { width: 1.4em; height: 1.4em; }
+            #party.sp-buff-140 .member-statuses > span > img { width: 1.4em; height: 1.4em; }
+            #party.sp-buff-150 .member-statuses > span { width: 1.5em; height: 1.5em; }
+            #party.sp-buff-150 .member-statuses > span > img { width: 1.5em; height: 1.5em; }
+            #party.sp-buff-160 .member-statuses > span { width: 1.6em; height: 1.6em; }
+            #party.sp-buff-160 .member-statuses > span > img { width: 1.6em; height: 1.6em; }
+            #party.sp-buff-170 .member-statuses > span { width: 1.7em; height: 1.7em; }
+            #party.sp-buff-170 .member-statuses > span > img { width: 1.7em; height: 1.7em; }
+            #party.sp-buff-180 .member-statuses > span { width: 1.8em; height: 1.8em; }
+            #party.sp-buff-180 .member-statuses > span > img { width: 1.8em; height: 1.8em; }
+            #party.sp-buff-190 .member-statuses > span { width: 1.9em; height: 1.9em; }
+            #party.sp-buff-190 .member-statuses > span > img { width: 1.9em; height: 1.9em; }
+            #party.sp-buff-200 .member-statuses > span { width: 2em; height: 2em; }
+            #party.sp-buff-200 .member-statuses > span > img { width: 2em; height: 2em; }
+            #party:hover > .window-title { opacity: 1; }
+            #party:hover .ui-hud-toolbar { opacity: 1; }
+            #party.sp-title-keep > .window-title { opacity: 1; }
+            #party.sp-title-keep .ui-hud-toolbar { opacity: 1; }
+            #party .ui-hud-toolbar button.ui-hud-action { opacity: 0; transition: opacity 0.3s linear-in-out; }
+            #party .ui-hud-toolbar button.ui-hud-action:disabled { opacity: 0; transition: opacity 0.3s linear-in-out; }
+            #party:hover .ui-hud-toolbar button.ui-hud-action { opacity: 1; }
+            #party:hover .ui-hud-toolbar button.ui-hud-action:disabled { opacity: 1; }
+            #party.sp-title-keep .ui-hud-toolbar button.ui-hud-action { opacity: 1; }
+            #party.sp-title-keep .ui-hud-toolbar button.ui-hud-action:disabled { opacity: 1; }
+            #party.sp-icons-off .sp-job-badge { display: none; }
+            #party.sp-icons-off .party-member.sp-has-job { padding-left: 0; }
+            #sp-switch-timer { position: absolute; width: 1dp; height: 1dp; opacity: 0; pointer-events: none; animation: 2s sp-switch-tick-a; }
+
+            /* ==== Default UI look only ==== */
+            #party.sp-theme-default > .window-title { height: 24dp; line-height: 24dp; padding-left: 4dp; }
+            #party.sp-theme-default .ui-hud-toolbar { top: -24dp; right: 0; gap: 2dp; }
+            .sp-theme-default .party-level { flex-shrink: 0; color: rgb(255, 247, 191); font-weight: 820; }
+            .sp-theme-default #party-tooltip { visibility: visible; position: absolute; z-index: 100; clip: none; pointer-events: none; padding: 8dp; width: 250dp; max-width: 90vw; max-height: 90vh; background: rgba(0, 0, 0, 230); border: 1dp rgb(150, 150, 150); border-radius: 3dp; }
+            .sp-theme-default .status-tooltip-time { display: block; color: rgb(90, 230, 110); }
+            .sp-theme-default .status-tooltip-time.warning { color: rgb(255, 170, 60); }
+            .sp-theme-default .status-tooltip-time.danger { color: rgb(255, 80, 80); }
+            .sp-theme-default .sp-job-badge { display: none; }
+            .sp-theme-default .sp-job-badge { position: absolute; left: 0; top: 0; width: 1.7em; height: 1.7em; box-sizing: border-box; border: 1dp rgb(120, 120, 120); background-color: rgb(0, 0, 0); pointer-events: none; }
+            #party.sp-theme-default > .window-title { visibility: visible; opacity: 0; transition: opacity 0.3s linear-in-out; }
+            #party.sp-theme-default .ui-hud-toolbar { visibility: visible; opacity: 0; transition: opacity 0.3s linear-in-out; }
+
+            /* ==== Steampunk look only ==== */
+            #party.sp-theme-steampunk > .window-title { height: 24dp; line-height: 24dp; padding-left: 4dp; }
+            #party.sp-theme-steampunk .ui-hud-toolbar { top: -24dp; right: 0; gap: 2dp; }
+            .sp-theme-steampunk .party-level { flex-shrink: 0; color: rgb(243, 211, 138); font-weight: 820; }
+            .sp-theme-steampunk #party-tooltip { visibility: visible; position: absolute; z-index: 100; clip: none; pointer-events: none; padding: 8dp; width: 250dp; max-width: 90vw; max-height: 90vh; background: rgba(226, 208, 170, 245); color: rgb(60, 40, 20); font-effect: none; border: 1dp rgb(122, 86, 36); border-radius: 3dp; }
+            .sp-theme-steampunk .status-tooltip-time { display: block; color: rgb(40, 120, 70); }
+            .sp-theme-steampunk .status-tooltip-time.warning { color: rgb(170, 90, 20); }
+            .sp-theme-steampunk .status-tooltip-time.danger { color: rgb(170, 40, 30); }
+            .sp-theme-steampunk .sp-job-badge { display: none; }
+            .sp-theme-steampunk .sp-job-badge { position: absolute; left: 0; top: 0; width: 1.7em; height: 1.7em; box-sizing: border-box; border: 1dp rgb(122, 86, 36); background-color: rgb(36, 30, 25); pointer-events: none; }
+            #party.sp-theme-steampunk > .window-title { top: 0dp; }
+            #party.sp-theme-steampunk > .window-title { visibility: visible; opacity: 0; transition: opacity 0.3s linear-in-out; }
+            #party.sp-theme-steampunk .ui-hud-toolbar { visibility: visible; opacity: 0; transition: opacity 0.3s linear-in-out; }
+
             @spritesheet group-job-icons
             {
                 src: ../imgs/ui_icon0.dds;
@@ -58,62 +145,35 @@
                 gj-artisan: 200px 43px 40px 40px;
                 gj-bourgeois: 326px 43px 40px 40px;
             }
-            .party-member.sp-has-job { position: relative; padding-left: 1.9em; }
-            /* a badge with no class known yet stays hidden (it showed as an empty black square) */
-            .sp-job-badge { display: none; }
-            .party-member.sp-has-job .sp-job-badge { display: block; }
-            .sp-job-badge { position: absolute; left: 0; top: 0; width: 1.7em; height: 1.7em; box-sizing: border-box; border: 1dp rgb(120, 120, 120); background-color: rgb(0, 0, 0); pointer-events: none; }
-            .sp-job-badge.job-visitor { decorator: image(gj-visitor); }
-            .sp-job-badge.job-soldier { decorator: image(gj-soldier); }
-            .sp-job-badge.job-knight { decorator: image(gj-knight); }
-            .sp-job-badge.job-champion { decorator: image(gj-champion); }
-            .sp-job-badge.job-muse { decorator: image(gj-muse); }
-            .sp-job-badge.job-mage { decorator: image(gj-mage); }
-            .sp-job-badge.job-cleric { decorator: image(gj-cleric); }
-            .sp-job-badge.job-hawker { decorator: image(gj-hawker); }
-            .sp-job-badge.job-raider { decorator: image(gj-raider); }
-            .sp-job-badge.job-scout { decorator: image(gj-scout); }
-            .sp-job-badge.job-dealer { decorator: image(gj-dealer); }
-            .sp-job-badge.job-artisan { decorator: image(gj-artisan); }
-            .sp-job-badge.job-bourgeois { decorator: image(gj-bourgeois); }
-            .sp-job-source { display: none; }
-            .sp-job-probe { display: none; }
-            /* Repeating timer: two identical animations swapped each time one ends */
             @keyframes sp-job-tick-a { from { opacity: 0; } to { opacity: 0; } }
             @keyframes sp-job-tick-b { from { opacity: 0; } to { opacity: 0; } }
-            #sp-job-timer { position: absolute; width: 1dp; height: 1dp; opacity: 0; pointer-events: none; animation: 1s sp-job-tick-a; }
-            /* Party Options extras (script below): buffs on/off, icon size, fading title bar */
-            #party.sp-buffs-off .member-statuses { display: none; }
-            #party.sp-buff-50 .member-statuses > span, #party.sp-buff-50 .member-statuses > span > img { width: 0.5em; height: 0.5em; }
-            #party.sp-buff-60 .member-statuses > span, #party.sp-buff-60 .member-statuses > span > img { width: 0.6em; height: 0.6em; }
-            #party.sp-buff-70 .member-statuses > span, #party.sp-buff-70 .member-statuses > span > img { width: 0.7em; height: 0.7em; }
-            #party.sp-buff-80 .member-statuses > span, #party.sp-buff-80 .member-statuses > span > img { width: 0.8em; height: 0.8em; }
-            #party.sp-buff-90 .member-statuses > span, #party.sp-buff-90 .member-statuses > span > img { width: 0.9em; height: 0.9em; }
-            #party.sp-buff-110 .member-statuses > span, #party.sp-buff-110 .member-statuses > span > img { width: 1.1em; height: 1.1em; }
-            #party.sp-buff-120 .member-statuses > span, #party.sp-buff-120 .member-statuses > span > img { width: 1.2em; height: 1.2em; }
-            #party.sp-buff-130 .member-statuses > span, #party.sp-buff-130 .member-statuses > span > img { width: 1.3em; height: 1.3em; }
-            #party.sp-buff-140 .member-statuses > span, #party.sp-buff-140 .member-statuses > span > img { width: 1.4em; height: 1.4em; }
-            #party.sp-buff-150 .member-statuses > span, #party.sp-buff-150 .member-statuses > span > img { width: 1.5em; height: 1.5em; }
-            #party.sp-buff-160 .member-statuses > span, #party.sp-buff-160 .member-statuses > span > img { width: 1.6em; height: 1.6em; }
-            #party.sp-buff-170 .member-statuses > span, #party.sp-buff-170 .member-statuses > span > img { width: 1.7em; height: 1.7em; }
-            #party.sp-buff-180 .member-statuses > span, #party.sp-buff-180 .member-statuses > span > img { width: 1.8em; height: 1.8em; }
-            #party.sp-buff-190 .member-statuses > span, #party.sp-buff-190 .member-statuses > span > img { width: 1.9em; height: 1.9em; }
-            #party.sp-buff-200 .member-statuses > span, #party.sp-buff-200 .member-statuses > span > img { width: 2em; height: 2em; }
-            /* Title bar: the game hides it until hovered. Here it fades in and out
-               instead, or stays visible when "Always show title bar" is ticked. */
-            #party > .window-title, #party .ui-hud-toolbar { visibility: visible; opacity: 0; transition: opacity 0.3s linear-in-out; }
-            #party:hover > .window-title, #party:hover .ui-hud-toolbar,
-            #party.sp-title-keep > .window-title, #party.sp-title-keep .ui-hud-toolbar { opacity: 1; }
-            /* The leader's disabled buttons set their own opacity, so fade them directly too */
-            #party .ui-hud-toolbar button.ui-hud-action, #party .ui-hud-toolbar button.ui-hud-action:disabled { opacity: 0; transition: opacity 0.3s linear-in-out; }
-            #party:hover .ui-hud-toolbar button.ui-hud-action, #party:hover .ui-hud-toolbar button.ui-hud-action:disabled,
-            #party.sp-title-keep .ui-hud-toolbar button.ui-hud-action, #party.sp-title-keep .ui-hud-toolbar button.ui-hud-action:disabled { opacity: 1; }
-            #party.sp-icons-off .sp-job-badge { display: none; }
-            #party.sp-icons-off .party-member.sp-has-job { padding-left: 0; }
-@keyframes sp-switch-tick-a { from { opacity: 0; } to { opacity: 0; } }
-@keyframes sp-switch-tick-b { from { opacity: 0; } to { opacity: 0; } }
-#sp-switch-timer { position: absolute; width: 1dp; height: 1dp; opacity: 0; pointer-events: none; animation: 2s sp-switch-tick-a; }
+            @keyframes sp-switch-tick-a { from { opacity: 0; } to { opacity: 0; } }
+            @keyframes sp-switch-tick-b { from { opacity: 0; } to { opacity: 0; } }
         </style>
+        <script>
+-- Theme check (add-on windows work with the default UI and with the Steampunk
+-- UI theme). Steampunk is installed when styles/steampunk.css exists; then this
+-- window gets the class sp-theme-steampunk and uses the Steampunk look,
+-- otherwise sp-theme-default and the game's own look. SP_THEME says which.
+pcall(function()
+    local sp = false
+    pcall(function()
+        local f = io.open('Data/ui/themes/rose/styles/steampunk.css', 'r')
+        if f then f:close(); sp = true end
+    end)
+    SP_THEME = sp and 'steampunk' or 'default'
+    local body = document:GetElementById('party')
+    if body then
+        body:SetClass('sp-theme-default', not sp)
+        body:SetClass('sp-theme-steampunk', sp)
+    end
+    -- parts written for the other look are taken out, so only one of each is left
+    local gone, list = {}, document:QuerySelectorAll(sp and '.sp-only-default' or '.sp-only-steampunk')
+    local i = list[0] and 0 or 1
+    while list[i] do gone[#gone + 1] = list[i]; i = i + 1 end
+    for _, e in ipairs(gone) do pcall(function() e.parent_node:RemoveChild(e) end) end
+end)
+        </script>
         <script>
 -- Job icons for group members (add-on).
 -- This window has no job data, so jobs are collected from places that do:
@@ -305,6 +365,8 @@ pcall(function()
     local MINE = {{'class_icons', 'sp-icons-off'}, {'party_buffs', 'sp-pbuffs-off'}}
     local installed = {}
     SP_ADDON_INSTALLED = function(key)
+        -- the Steampunk UI theme has every add-on built in
+        if SP_THEME == 'steampunk' then return true end
         if installed[key] == nil then
             installed[key] = true      -- if the game won't let the UI read files, assume installed
             pcall(function()
