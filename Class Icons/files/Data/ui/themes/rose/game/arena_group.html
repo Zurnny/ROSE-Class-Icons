@@ -219,23 +219,29 @@ local ok, err = pcall(function()
     end
     local function trim(t) return (tostring(t or ''):gsub('<[^>]*>', ''):match('^%s*(.-)%s*$')) end
 
-    -- name -> job, saved between sessions
-    local CACHE_FILE, cache, dirty = 'sp_job_cache.txt', {}, false
-    pcall(function()
-        local f = io.open(CACHE_FILE, 'r')
-        if not f then return end
-        for line in f:lines() do
-            local name, job = line:match('^(.-)=(%a+)%s*$')
-            if name and VALID[job] then cache[name] = job end
-        end
-        f:close()
-    end)
+    -- name -> job, saved between sessions (sp_job_cache.txt). Other windows (the
+    -- clan window, the Party Finder, the other party/group window) add to that file
+    -- too, so it is read again every 10 seconds and merged before saving.
+    local CACHE_FILE, cache, dirty, mine = 'sp_job_cache.txt', {}, false, {}
+    local function load_file()
+        pcall(function()
+            local f = io.open(CACHE_FILE, 'r')
+            if not f then return end
+            for line in f:lines() do
+                local name, job = line:match('^(.-)=(%a+)%s*$')
+                if name and VALID[job] and not mine[name] then cache[name] = job end
+            end
+            f:close()
+        end)
+    end
+    load_file()
     local function remember(name, job)
-        if name ~= '' and job and cache[name] ~= job then cache[name] = job; dirty = true end
+        if name ~= '' and job and cache[name] ~= job then cache[name] = job; mine[name] = true; dirty = true end
     end
     local function save()
         if not dirty then return end
         dirty = false
+        load_file()      -- keep what the other windows saved meanwhile
         pcall(function()
             local f = io.open(CACHE_FILE, 'w')
             if not f then return end
@@ -243,6 +249,7 @@ local ok, err = pcall(function()
             f:close()
         end)
     end
+    local reread = 0
 
     local added, flip = false, false
     local function add_sources()
@@ -261,6 +268,8 @@ local ok, err = pcall(function()
 
     local function update()
         if not added then return end
+        reread = reread + 1
+        if reread >= 10 then reread = 0; load_file() end
         local by_tag, self_job = {}, nil
         each(document:QuerySelectorAll('.sp-job-source span'), function(s)
             local job = job_name(s:GetAttribute('sp-job'))

@@ -2,7 +2,7 @@
 
 Class icons in the party and group windows.
 
-Class icons next to party and group members. Classes are picked up from the Game Arena, clan and friend lists and remembered, so icons fill in over time. Makes both windows wide enough for a full row of buffs. Switch: Options > UI > Add-ons.
+Class icons next to party and group members. Classes are picked up from the Game Arena, clan and friend lists, the clan window and every Party Finder advert you look at, and remembered, so icons fill in over time. Makes both windows wide enough for a full row of buffs. Switch: Options > UI > Add-ons.
 
 An add-on for [ROSE Mod Launcher](https://github.com/Zurnny/Rose_Mod_Launcher), for the game's default UI and the Steampunk UI theme. Without the launcher, copy the `Data` folder from `files` into your ROSE Online folder.
 
@@ -30,8 +30,10 @@ theme uses the same file; both keep each other's settings.
 
 ## Files it changes
 - `Data/ui/themes/rose/game/arena_group.html`
+- `Data/ui/themes/rose/game/clan.html`
 - `Data/ui/themes/rose/game/options_bgfx.html`
 - `Data/ui/themes/rose/game/party.html`
+- `Data/ui/themes/rose/game/party_finder.html`
 - `Data/ui/sp_addons/class_icons.txt` (marker)
 
 Turning it off in the launcher puts the game's own files back.
