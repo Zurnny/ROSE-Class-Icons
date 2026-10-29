@@ -1,9 +1,9 @@
 ; Update list for Class Icons. Upload this next to mod.ini and the files folder.
-version=1.6
-ea3dbde665e8ef97dd9a28d0d90f184160e80b0f|mod.ini
+version=1.7
+9de751f3cfd9748ff817db887ec4739ddbce7a0d|mod.ini
 1097ef8fd666b0e4e491c1295feb4ac42b94be2c|files/Data/ui/sp_addons/class_icons.txt
-181be009e470b10c7a5708cfbc9f8dc825d79959|files/Data/ui/themes/rose/game/arena_group.html
-bfe10ae32a20ae21c651c752d50e8f34a3fea18d|files/Data/ui/themes/rose/game/clan.html
+375c28a63ceedfa20511bec767aaab5ccb1b527b|files/Data/ui/themes/rose/game/arena_group.html
+33a10b48cc4f985e7ecf439b44cd7cb2912dafb5|files/Data/ui/themes/rose/game/clan.html
 cfe4c3a63e20ee55e3b512b3366654398eafeeed|files/Data/ui/themes/rose/game/options_bgfx.html
-89e68072365188461203bfe0bf83c072abf76a5c|files/Data/ui/themes/rose/game/party.html
-aea29e07cb383aec1f7e1c0a9d33c0b47651149b|files/Data/ui/themes/rose/game/party_finder.html
+553039cbff1222a26ca9fa75007065dc52a06eea|files/Data/ui/themes/rose/game/party.html
+8846fe1dcd39676b92d1b5987dda8d7772e614d6|files/Data/ui/themes/rose/game/party_finder.html
